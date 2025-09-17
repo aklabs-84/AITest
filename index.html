@@ -1,0 +1,467 @@
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 활용 진단 테스트</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Inter 폰트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe, #fff1f2);
+            color: #1e293b;
+        }
+        .container {
+            max-width: 800px;
+        }
+        
+        /* 시작 화면 애니메이션 */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+
+        .title-animation {
+            animation: bounce 2s infinite;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.5s ease-in-out;
+            border-radius: 9999px;
+        }
+
+        /* 결과 화면 버튼 스타일 */
+        .primary-btn {
+            @apply bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105;
+        }
+
+        .secondary-btn {
+            @apply bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105;
+        }
+        
+        /* 결과 화면 애니메이션 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in-element {
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+
+        /* 이모지 애니메이션 */
+        @keyframes tada {
+            from {
+                transform: scale3d(1, 1, 1);
+            }
+
+            10%, 20% {
+                transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
+            }
+
+            30%, 50%, 70%, 90% {
+                transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
+            }
+
+            40%, 60%, 80% {
+                transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
+            }
+
+            to {
+                transform: scale3d(1, 1, 1);
+            }
+        }
+        .emoji-animation {
+            animation: tada 1.5s infinite;
+        }
+
+        /* 추가된 결과 화면 다이나믹 애니메이션 */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes rotateIn {
+            from {
+                transform: rotate(-200deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotate(0);
+                opacity: 1;
+            }
+        }
+
+        .slide-in-up {
+            animation: slideInUp 0.8s ease-out forwards;
+        }
+
+        .zoom-in {
+            animation: zoomIn 0.6s ease-out forwards;
+        }
+
+        .rotate-in {
+            animation: rotateIn 0.8s ease-out forwards;
+        }
+
+        /* 이름 입력 필드 오류 스타일 */
+        .error-border {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        .error-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        /* 복사 버튼 스타일 */
+        .copy-btn {
+            @apply bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-12 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 메인 앱 컨테이너 -->
+    <div id="app" class="min-h-screen flex items-center justify-center p-4">
+
+        <!-- 시작 화면 -->
+        <div id="start-screen" class="container text-center flex flex-col items-center justify-center space-y-8">
+            <div class="title-animation">
+                <h1 class="text-6xl font-bold text-blue-600 drop-shadow-md">AI 활용 진단 테스트</h1>
+                <p class="mt-4 text-xl font-medium text-gray-700">나는 과연 인공지능을 얼마나 잘 활용하고 있을까?</p>
+            </div>
+            <div class="w-full max-w-sm flex flex-col items-center">
+                <label for="user-name-input" class="mb-2 text-lg font-medium text-gray-700">참여자 이름 입력 형식: 이름+직책</label>
+                <input type="text" id="user-name-input" placeholder="홍길동 대표" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg shadow-sm">
+                <p id="name-error" class="text-red-500 text-sm mt-2 hidden">이름을 입력해주세요!</p>
+            </div>
+            <!-- 시작 버튼에 하얀색 배경과 파란색 테두리 직접 적용 -->
+            <button id="start-btn" class="bg-white border-2 border-blue-400 text-blue-600 font-medium py-4 px-6 rounded-xl shadow-md transition-all duration-200 hover:bg-blue-400 hover:text-white hover:shadow-lg transform hover:scale-105">
+                진단 시작하기
+            </button>
+        </div>
+
+        <!-- 문제 화면 -->
+        <div id="quiz-screen" class="container hidden flex-col items-center justify-center space-y-6">
+            <!-- 진행도 바 -->
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <!-- 현재 문제 번호 -->
+            <p id="current-question-number" class="text-sm font-semibold text-gray-500 self-start">문제 1/8</p>
+            <!-- 문제 텍스트 -->
+            <div class="flex-grow flex items-center justify-center text-center p-4">
+                <h2 id="question-text" class="text-2xl md:text-3xl font-semibold text-gray-900 leading-relaxed">문제 텍스트</h2>
+            </div>
+            <!-- 답변 버튼들 -->
+            <div id="answer-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <!-- 답변 버튼들이 여기에 동적으로 생성됩니다. -->
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="result-screen" class="container hidden text-center flex-col items-center justify-center space-y-8">
+            <h2 id="result-title" class="text-3xl md:text-5xl font-bold text-gray-800 slide-in-up" style="animation-delay: 0s;"></h2>
+            <p id="result-text" class="text-xl md:text-2xl font-medium text-gray-600 zoom-in" style="animation-delay: 0.3s;"></p>
+            <div id="result-animation" class="text-7xl emoji-animation rotate-in" style="animation-delay: 0.6s;"></div>
+            <div id="result-details" class="max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg fade-in-element" style="animation-delay: 0.9s;">
+                <div id="result-content" class="text-gray-700 leading-relaxed"></div>
+            </div>
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center items-center fade-in-element" style="animation-delay: 1.2s;">
+                <button id="copy-btn" class="copy-btn">
+                    결과 복사하기
+                </button>
+                <button id="restart-btn" class="primary-btn">
+                    처음부터 다시 하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+  // DOM 요소
+  const startScreen = document.getElementById('start-screen');
+  const quizScreen = document.getElementById('quiz-screen');
+  const resultScreen = document.getElementById('result-screen');
+  const userNameInput = document.getElementById('user-name-input');
+  const nameError = document.getElementById('name-error');
+  const startBtn = document.getElementById('start-btn');
+  const progressBar = document.getElementById('progress-bar');
+  const currentQuestionNumber = document.getElementById('current-question-number');
+  const questionText = document.getElementById('question-text');
+  const answerButtons = document.getElementById('answer-buttons');
+  const resultTitle = document.getElementById('result-title');
+  const resultText = document.getElementById('result-text');
+  const resultAnimation = document.getElementById('result-animation');
+  const resultDetails = document.getElementById('result-details');
+  const resultContent = document.getElementById('result-content');
+  const copyBtn = document.getElementById('copy-btn');
+  const restartBtn = document.getElementById('restart-btn');
+
+  // 전역 상태
+  const questions = [
+    { question: "업무 중 새로운 문제를 마주했을 때,<br>AI를 활용해 해결책을 찾는 빈도는?", options: ["A. 거의 매일","B. 가끔 필요할 때만","C. 1년에 몇 번","D. 전혀 안 함"] },
+    { question: "아래 중 내가 지난 1개월 안에 사용해본 AI 툴의 수는?", options: ["A. 5개 이상","B. 3~4개","C. 1~2개","D. 없음"] },
+    { question: "나의 업무 도구(예: Google Sheets, Slack, Notion 등)와 <br>AI를 연동해 자동화해본 경험은?", options: ["A. 자주 사용","B. 1~2번 시도","C. 계획만 함","D. 전혀 안 함"] },
+    { question: "AI를 단순 질의응답이 아닌 '콘텐츠 기획, 디자인, 영상 제작, <br>분석' 등 창작 목적으로 활용하는 빈도는?", options: ["A. 매우 자주","B. 가끔","C. 거의 없음","D. 전혀 없음"] },
+    { question: "새로운 AI 툴이나 기능이 출시됐을 때, <br>사용법을 직접 찾아보고 시도하는 편인가?", options: ["A. 바로 사용해봄","B. 몇 주 후에 시도","C. 뉴스만 확인","D. 전혀 관심 없음"] },
+    { question: "AI 덕분에 업무 처리 속도가 빨라졌다고 느낀 정도는?", options: ["A. 매우 많이 단축","B. 약간 단축","C. 변화 없음","D. 오히려 느려짐"] },
+    { question: "목적에 맞춰 프롬프트(지시문)를 <br>구체적으로 작성하는 데 얼마나 자신 있는가?", options: ["A. 매우 자신 있음","B. 어느 정도 가능","C. 간단한 질문만 가능","D. 거의 못 함"] },
+    { question: "다른 사람의 요청(보고서, 자료 준비 등)을 <br>AI로 대신 처리해 준 경험은?", options: ["A. 자주 있음","B. 몇 번 있음","C. 거의 없음","D. 전혀 없음"] }
+  ];
+  const scores = [10, 5, 2, 0];
+
+  // 구글 앱스 스크립트 URL
+  const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_Uv8yC4GXEA59P3c3rxeD5Wu7yBFph4zrSJLe5-QxBykIyl-ZKsrM0AEJmkOoxjZ7/exec';
+
+  let currentQuestionIndex = 0;
+  let totalScore = 0;
+  let userName = '';
+  let finalResult = '';
+  let resultLevel = '';        // 보강: 전역 선언
+  let detailedMessage = '';    // 보강: 전역 선언
+
+  // Tone.js 효과음
+  async function playStartSound() {
+    await Tone.start();
+    const synth = new Tone.Synth().toDestination();
+    synth.triggerAttackRelease("C4", "8n");
+    setTimeout(() => synth.triggerAttackRelease("E4", "8n"), 100);
+    setTimeout(() => synth.triggerAttackRelease("G4", "8n"), 200);
+  }
+  async function playClickSound() {
+    await Tone.start();
+    const synth = new Tone.Synth().toDestination();
+    synth.triggerAttackRelease("C5", "16n");
+  }
+  async function playResultSound(level) {
+    await Tone.start();
+    const synth = new Tone.Synth().toDestination();
+    if (level === "AI 마스터") {
+      ["C4","E4","G4","C5"].forEach((n,i)=>setTimeout(()=>synth.triggerAttackRelease(n,"8n"), i*150));
+    } else if (level === "AI 활용 중급자") {
+      setTimeout(()=>synth.triggerAttackRelease("G4","8n"),0);
+      setTimeout(()=>synth.triggerAttackRelease("C5","8n"),200);
+    } else if (level === "AI 입문자") {
+      synth.triggerAttackRelease("E4","4n");
+    } else {
+      synth.triggerAttackRelease("C4","4n");
+    }
+  }
+
+  // 시작
+  async function startGame() {
+    const name = userNameInput.value.trim();
+    if (!name) {
+      userNameInput.classList.add('error-border','error-shake');
+      nameError.classList.remove('hidden');
+      setTimeout(()=>userNameInput.classList.remove('error-shake'), 500);
+      return;
+    }
+    userNameInput.classList.remove('error-border');
+    nameError.classList.add('hidden');
+
+    userName = name;
+    await playStartSound();
+
+    startScreen.classList.add('hidden');
+    quizScreen.classList.remove('hidden');
+    currentQuestionIndex = 0;
+    totalScore = 0;
+    showQuestion();
+  }
+
+  // 문제 표시
+  function showQuestion() {
+    if (currentQuestionIndex >= questions.length) {
+      showResult();
+      return;
+    }
+    const q = questions[currentQuestionIndex];
+
+    currentQuestionNumber.textContent = `문제 ${currentQuestionIndex + 1}/${questions.length}`;
+    const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+    progressBar.style.width = `${progress}%`;
+
+    questionText.innerHTML = q.question;
+    answerButtons.innerHTML = '';
+
+    q.options.forEach((option, index) => {
+      const button = document.createElement('button');
+      button.textContent = option;
+      button.classList.add(
+        'bg-white','border-2','border-blue-400','text-blue-600','font-medium',
+        'py-4','px-6','rounded-xl','shadow-md','transition-all','duration-200',
+        'hover:bg-blue-400','hover:text-white','hover:shadow-lg','transform','hover:scale-105','text-left'
+      );
+      button.onclick = () => checkAnswer(index);
+      answerButtons.appendChild(button);
+    });
+  }
+
+  // 답변 처리
+  async function checkAnswer(selectedIndex) {
+    await playClickSound();
+    totalScore += scores[selectedIndex];
+    currentQuestionIndex++;
+    showQuestion();
+  }
+
+  // 결과 표시
+  async function showResult() {
+    quizScreen.classList.add('hidden');
+    resultScreen.classList.remove('hidden');
+
+    let resultMessage = '';
+    let resultAnimationEmoji = '';
+
+    if (totalScore >= 60) {
+      resultLevel = "AI 마스터";
+      resultMessage = `${userName}님은 AI 활용 레벨 ${resultLevel}입니다!`;
+      resultAnimationEmoji = "🚀";
+      detailedMessage = `정말 대단해요! AI를 업무와 창작 활동에 능숙하게 활용하고 계시네요. 새로운 AI 기술에 대한 호기심과 실행력이 뛰어나며, 프롬프트 작성 능력도 훌륭합니다. 앞으로도 AI 분야의 선구자 역할을 해주세요!`;
+    } else if (totalScore >= 40) {
+      resultLevel = "AI 활용 중급자";
+      resultMessage = `${userName}님은 AI 활용 레벨 ${resultLevel}입니다!`;
+      resultAnimationEmoji = "👏";
+      detailedMessage = `좋은 수준이에요! AI를 일상 업무에 잘 활용하고 계시며, 창작 활동에도 관심을 보이고 있어요. 조금 더 다양한 AI 도구를 시도해보고 자동화에 도전해본다면 마스터 레벨에 도달할 수 있을 거예요!`;
+    } else if (totalScore >= 20) {
+      resultLevel = "AI 입문자";
+      resultMessage = `${userName}님은 AI 활용 레벨 ${resultLevel}입니다!`;
+      resultAnimationEmoji = "💡";
+      detailedMessage = `AI 활용의 첫 걸음을 잘 내디디고 계세요! 기본적인 AI 도구 사용법을 익히고, 더 자주 AI를 활용해보세요. 프롬프트 작성법을 연습하고 다양한 AI 도구들을 체험해보시면 실력이 크게 늘 거예요.`;
+    } else {
+      resultLevel = "AI 초보";
+      resultMessage = `${userName}님은 AI 활용 레벨 ${resultLevel}입니다!`;
+      resultAnimationEmoji = "🐣";
+      detailedMessage = `AI 활용의 새로운 세계에 오신 것을 환영해요! ChatGPT, Claude와 같은 기본 AI 도구부터 시작해보세요. 간단한 질문이나 번역, 요약 작업부터 천천히 시작하면서 AI의 매력을 발견해보시길 바라요.`;
+    }
+
+    resultTitle.textContent = resultLevel;
+    resultText.textContent = resultMessage;
+    resultAnimation.textContent = resultAnimationEmoji;
+    resultContent.textContent = detailedMessage;
+
+    finalResult = `${resultLevel}\n\n${resultMessage}\n\n${detailedMessage}\n\n점수: ${totalScore}점 / 80점`;
+
+    await playResultSound(resultLevel);
+    await saveToSpreadsheet(); // 저장
+  }
+
+  // 스프레드시트 저장
+  async function saveToSpreadsheet() {
+    try {
+      const currentDate = new Date();
+      const formattedDate = currentDate.toLocaleString('ko-KR', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+
+      const data = {
+        timestamp: formattedDate,
+        name: userName,
+        resultTitle: resultLevel,
+        resultContent: detailedMessage,
+        score: `${totalScore}점 / 80점`
+      };
+
+      // saveToSpreadsheet() 안의 fetch 부분만 교체
+      const res = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        // ↓ 프리플라이트 안 뜨는 단순 요청으로 변경
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data),
+        // mode:'cors' 기본값으로 충분 (no-cors 사용 금지: 에러 가려짐)
+      });
+      // 필요 시 응답 확인
+      // const json = await res.json(); console.log(json);
+
+      console.log('결과 저장 요청 완료');
+    } catch (error) {
+      console.error('스프레드시트 저장 중 오류:', error);
+    }
+  }
+
+  // 결과 복사
+  async function copyResult() {
+    try {
+      await navigator.clipboard.writeText(finalResult);
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = '복사 완료!';
+      copyBtn.classList.add('bg-green-600');
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+        copyBtn.classList.remove('bg-green-600');
+      }, 2000);
+      await playClickSound();
+    } catch (err) {
+      console.error('복사 실패:', err);
+      alert('복사에 실패했습니다. 브라우저가 복사 기능을 지원하지 않을 수 있습니다.');
+    }
+  }
+
+  // 이벤트 리스너(중복 제거 버전)
+  startBtn.addEventListener('click', startGame);
+  copyBtn.addEventListener('click', copyResult);
+  restartBtn.addEventListener('click', () => {
+    resultScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+    userNameInput.value = '';
+  });
+
+  // 엔터로 시작
+  userNameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') startGame();
+  });
+
+  // 입력 시 에러 힌트 제거
+  userNameInput.addEventListener('input', () => {
+    if (userNameInput.value.trim()) {
+      userNameInput.classList.remove('error-border');
+      nameError.classList.add('hidden');
+    }
+  });
+</script>
+
+</body>
+</html>
