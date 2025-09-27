@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -48,11 +49,35 @@
 
         /* 결과 화면 버튼 스타일 */
         .primary-btn {
-            @apply bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105;
+            background: linear-gradient(to right, #3b82f6, #ec4899);
+            color: white;
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+
+        .primary-btn:hover {
+            background: linear-gradient(to right, #2563eb, #db2777);
+            transform: scale(1.05);
         }
 
         .secondary-btn {
-            @apply bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105;
+            background: linear-gradient(to right, #d1d5db, #9ca3af);
+            color: #1f2937;
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+
+        .secondary-btn:hover {
+            background: linear-gradient(to right, #9ca3af, #6b7280);
+            transform: scale(1.05);
         }
         
         /* 결과 화면 애니메이션 */
@@ -155,12 +180,56 @@
 
         /* 복사 버튼 스타일 */
         .copy-btn {
-            @apply bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-12 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl;
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+            font-weight: bold;
+            padding: 16px 48px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+            transform: scale(1);
+            border: none;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(to right, #047857, #065f46);
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 저장 상태 알림 */
+        .save-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateX(calc(100% + 20px));
+            transition: transform 0.3s ease-in-out;
+            z-index: 1000;
+            font-weight: 600;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .save-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+            visibility: visible;
         }
 
     </style>
 </head>
 <body>
+    <!-- 저장 상태 알림 -->
+    <div id="save-notification" class="save-notification">
+        <span id="save-message">결과가 저장되었습니다!</span>
+    </div>
+
     <!-- 메인 앱 컨테이너 -->
     <div id="app" class="min-h-screen flex items-center justify-center p-4">
 
@@ -237,6 +306,8 @@
   const resultContent = document.getElementById('result-content');
   const copyBtn = document.getElementById('copy-btn');
   const restartBtn = document.getElementById('restart-btn');
+  const saveNotification = document.getElementById('save-notification');
+  const saveMessage = document.getElementById('save-message');
 
   // 전역 상태
   const questions = [
@@ -252,7 +323,7 @@
   const scores = [10, 5, 2, 0];
 
   // 구글 앱스 스크립트 URL
-  const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_Uv8yC4GXEA59P3c3rxeD5Wu7yBFph4zrSJLe5-QxBykIyl-ZKsrM0AEJmkOoxjZ7/exec';
+  const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweGgodUc2YyBTgrmgUmjLQDrhSuZqdcakQ2ogMyPDoK90va3Ta6eDPaPrYUm6gLm0aww/exec';
 
   let currentQuestionIndex = 0;
   let totalScore = 0;
@@ -260,6 +331,19 @@
   let finalResult = '';
   let resultLevel = '';        // 보강: 전역 선언
   let detailedMessage = '';    // 보강: 전역 선언
+
+  // 저장 알림 표시 함수
+  function showSaveNotification(message, isSuccess = true) {
+    saveMessage.textContent = message;
+    saveNotification.style.background = isSuccess 
+      ? 'linear-gradient(135deg, #10b981, #059669)' 
+      : 'linear-gradient(135deg, #ef4444, #dc2626)';
+    saveNotification.classList.add('show');
+    
+    setTimeout(() => {
+      saveNotification.classList.remove('show');
+    }, 3000);
+  }
 
   // Tone.js 효과음
   async function playStartSound() {
@@ -405,20 +489,24 @@
         score: `${totalScore}점 / 80점`
       };
 
-      // saveToSpreadsheet() 안의 fetch 부분만 교체
       const res = await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: 'POST',
-        // ↓ 프리플라이트 안 뜨는 단순 요청으로 변경
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(data),
-        // mode:'cors' 기본값으로 충분 (no-cors 사용 금지: 에러 가려짐)
       });
-      // 필요 시 응답 확인
-      // const json = await res.json(); console.log(json);
 
-      console.log('결과 저장 요청 완료');
+      if (res.ok) {
+        const responseData = await res.json();
+        const sheetName = responseData.sheetName || '해당 날짜 시트';
+        showSaveNotification(`${sheetName}에 결과가 저장되었습니다!`, true);
+        console.log('결과 저장 완료:', responseData);
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
     } catch (error) {
       console.error('스프레드시트 저장 중 오류:', error);
+      showSaveNotification('저장 중 오류가 발생했습니다.', false);
     }
   }
 
