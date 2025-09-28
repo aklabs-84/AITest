@@ -76,7 +76,7 @@ function looksScore_(v){ return /\d+\s*(점|\/|\d)/.test(String(v||'')); }
 
 function doPost(e){
   try{
-    const SPREADSHEET_ID = '1dDDeUp4rGpn9WMzV0rmD6Obq4KoIZq_M9O1-qkqu_Ts';
+    const SPREADSHEET_ID = '스프레드시트 ID';
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     
     // 현재 날짜로 시트 결정
