@@ -323,7 +323,7 @@
   const scores = [10, 5, 2, 0];
 
   // 구글 앱스 스크립트 URL
-  const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweGgodUc2YyBTgrmgUmjLQDrhSuZqdcakQ2ogMyPDoK90va3Ta6eDPaPrYUm6gLm0aww/exec';
+  const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxe-s7Q3CPSxQ5cPBnaFWGAmvGipogLncluJVUW2nSpD067rPlW93jgbSP4LAYVMMhhfw/exec';
 
   let currentQuestionIndex = 0;
   let totalScore = 0;
@@ -331,6 +331,7 @@
   let finalResult = '';
   let resultLevel = '';        // 보강: 전역 선언
   let detailedMessage = '';    // 보강: 전역 선언
+  let userAnswers = [];        // 사용자가 선택한 답변 저장
 
   // 저장 알림 표시 함수
   function showSaveNotification(message, isSuccess = true) {
@@ -392,6 +393,7 @@
     quizScreen.classList.remove('hidden');
     currentQuestionIndex = 0;
     totalScore = 0;
+    userAnswers = []; // 답변 배열 초기화
     showQuestion();
   }
 
@@ -426,6 +428,11 @@
   // 답변 처리
   async function checkAnswer(selectedIndex) {
     await playClickSound();
+    
+    // 선택한 답변 저장 (A, B, C, D 형태로)
+    const answerLabel = ['A', 'B', 'C', 'D'][selectedIndex];
+    userAnswers.push(answerLabel);
+    
     totalScore += scores[selectedIndex];
     currentQuestionIndex++;
     showQuestion();
@@ -481,13 +488,26 @@
         hour: '2-digit', minute: '2-digit', second: '2-digit'
       });
 
+      // 8개 문제의 답변을 개별 필드로 준비
       const data = {
         timestamp: formattedDate,
         name: userName,
         resultTitle: resultLevel,
         resultContent: detailedMessage,
-        score: `${totalScore}점 / 80점`
+        score: `${totalScore}점 / 80점`,
+        answer1: userAnswers[0] || '',
+        answer2: userAnswers[1] || '',
+        answer3: userAnswers[2] || '',
+        answer4: userAnswers[3] || '',
+        answer5: userAnswers[4] || '',
+        answer6: userAnswers[5] || '',
+        answer7: userAnswers[6] || '',
+        answer8: userAnswers[7] || ''
       };
+
+      // 디버깅: 전송할 데이터 확인
+      console.log('저장할 데이터:', data);
+      console.log('사용자 답변 배열:', userAnswers);
 
       const res = await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: 'POST',
@@ -535,6 +555,7 @@
     resultScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
     userNameInput.value = '';
+    userAnswers = []; // 답변 초기화
   });
 
   // 엔터로 시작
