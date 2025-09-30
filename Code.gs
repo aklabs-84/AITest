@@ -1,11 +1,19 @@
 /** Code.gs (날짜별 시트 저장 버전) **/
-const DEFAULT_HEADERS = ['이름','결과 타이틀','결과 내용','점수','타임스탬프'];
+const DEFAULT_HEADERS = ['이름','결과 타이틀','결과 내용','점수','타임스탬프','문제1','문제2','문제3','문제4','문제5','문제6','문제7','문제8'];
 const HEADER_KEYS = {
   name:    ['이름','name'],
   title:   ['결과 타이틀','결과타이틀','title','resulttitle'],
   content: ['결과 내용','결과내용','content','resultcontent'],
   score:   ['점수','score'],
-  ts:      ['타임스탬프','타임스태프','timestamp','시간','작성시각']
+  ts:      ['타임스탬프','타임스태프','timestamp','시간','작성시각'],
+  answer1: ['문제1','답변1','answer1','q1'],
+  answer2: ['문제2','답변2','answer2','q2'],
+  answer3: ['문제3','답변3','answer3','q3'],
+  answer4: ['문제4','답변4','answer4','q4'],
+  answer5: ['문제5','답변5','answer5','q5'],
+  answer6: ['문제6','답변6','answer6','q6'],
+  answer7: ['문제7','답변7','answer7','q7'],
+  answer8: ['문제8','답변8','answer8','q8']
 };
 
 function norm_(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,''); }
@@ -48,7 +56,9 @@ function ensureHeaders_(sh){
 
   // 각 키의 대표 헤더가 없으면 추가, 비표준 변형이면 표준 명칭으로 교체
   const want = {
-    name: '이름', title: '결과 타이틀', content: '결과 내용', score: '점수', ts: '타임스탬프'
+    name: '이름', title: '결과 타이틀', content: '결과 내용', score: '점수', ts: '타임스탬프',
+    answer1: '문제1', answer2: '문제2', answer3: '문제3', answer4: '문제4',
+    answer5: '문제5', answer6: '문제6', answer7: '문제7', answer8: '문제8'
   };
   Object.entries(HEADER_KEYS).forEach(([k, alts])=>{
     const idx = normRow.findIndex(h => alts.includes(h));
@@ -76,7 +86,7 @@ function looksScore_(v){ return /\d+\s*(점|\/|\d)/.test(String(v||'')); }
 
 function doPost(e){
   try{
-    const SPREADSHEET_ID = '스프레드시트 ID';
+    const SPREADSHEET_ID = '스프레드시트ID';
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     
     // 현재 날짜로 시트 결정
@@ -106,6 +116,14 @@ function doPost(e){
     const contentCol = findCol_(sh,'content');
     const scoreCol = findCol_(sh,'score');
     const tsCol = findCol_(sh,'ts');
+    const answer1Col = findCol_(sh,'answer1');
+    const answer2Col = findCol_(sh,'answer2');
+    const answer3Col = findCol_(sh,'answer3');
+    const answer4Col = findCol_(sh,'answer4');
+    const answer5Col = findCol_(sh,'answer5');
+    const answer6Col = findCol_(sh,'answer6');
+    const answer7Col = findCol_(sh,'answer7');
+    const answer8Col = findCol_(sh,'answer8');
 
     const rowLen = sh.getLastColumn();
     const row = new Array(rowLen).fill('');
@@ -115,6 +133,14 @@ function doPost(e){
     if (contentCol)row[contentCol-1]= data.resultContent || '';
     if (scoreCol)  row[scoreCol-1]  = rawScore || '';
     if (tsCol)     row[tsCol-1]     = rawTs;
+    if (answer1Col) row[answer1Col-1] = data.answer1 || '';
+    if (answer2Col) row[answer2Col-1] = data.answer2 || '';
+    if (answer3Col) row[answer3Col-1] = data.answer3 || '';
+    if (answer4Col) row[answer4Col-1] = data.answer4 || '';
+    if (answer5Col) row[answer5Col-1] = data.answer5 || '';
+    if (answer6Col) row[answer6Col-1] = data.answer6 || '';
+    if (answer7Col) row[answer7Col-1] = data.answer7 || '';
+    if (answer8Col) row[answer8Col-1] = data.answer8 || '';
 
     sh.appendRow(row);
 
